@@ -1,0 +1,605 @@
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Сравнение расписания для поиска окон</title>
+    <style>
+        body {
+            background-image: url('https://free4kwallpapers.com/uploads/originals/2021/07/11/code-generated-wallpaper.png'); /* Replace 'background.jpg' with your desired background image */
+            background-size: cover;
+            font-family: "Georgia", serif;
+        }
+
+
+        table {
+            border-collapse: collapse;
+            width: 70%;
+            height: 50%;
+            font-size: 100%;
+        }
+
+        caption {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 1px;
+            text-align: left;
+        }
+
+
+        .empty-cell {
+            background-color: rgba(0, 255, 0, 0.4);
+        }
+
+        .non_empty-cell {
+            background-color: rgba(255, 0, 0, 0.4);
+        }
+
+        input[type="text"], select, button {
+            border-radius: 20px;
+            padding: 10px;
+            margin: 5px;
+            font-family: "Georgia", serif;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+    </style>
+    <script>
+        var empty_table = 0;
+        function add_schedule() {
+            var selectedValue = document.getElementById("choose_group").value;
+            var selectedWeek = document.getElementById("choose_week").value;
+            empty_table += 1;
+			if(empty_table > 4)
+			{
+			empty_table = 4;
+			}
+            fetch("https://webictis.sfedu.ru/schedule-api/?group=" + selectedValue + "&week=" + selectedWeek)
+                .then(response => response.json())
+                .then(data => {
+                    var table_ = document.getElementById(empty_table + "_table");
+                    var caption = table_.querySelector("caption");
+                    caption.textContent = data.table.name;
+                    for (var j = 1; j <= 7; j++) {
+                        for (var k = 0; k <= 7; k++) {
+                            var cell = document.getElementById("cell_" + empty_table + "_" + j + "_" + k);
+                            cell.innerHTML = data.table.table[j + 1][k];
+                            if (data.table.table[j + 1][k] != "" && k !== 0) {
+                                for (var i = 1; i <= 4; i++) {
+                                    var cell = document.getElementById("cell_" + i + "_" + j + "_" + k);
+                                    cell.style.backgroundColor = "rgba(255, 0, 0, 0.4)";
+                                }
+                            }
+                        }
+                    }
+
+                });
+        }
+
+        function fetchSchedule() {
+            // Get user input
+            var query = document.getElementById("query").value;
+
+            // Make API request
+            fetch("https://webictis.sfedu.ru/schedule-api/?query=" + query)
+                .then(response => response.json())
+                .then(data => {
+                    var selectHtml = '<select name="choose_group" id="choose_group">';
+
+                    if (data.table) {
+                        selectHtml += "<option value='" + data.table.group + "'>" + data.table.name + "</option>";
+                        selectHtml += "</select>";
+                        document.getElementById("choose_group").innerHTML = selectHtml;
+
+                        var weekSelectHtml = '<select name="choose_week" id="choose_week">';
+                        for (var i = 1; i < data.table.week; i++) {
+                            weekSelectHtml += "<option value='" + i + "'>" + i + "</option>";
+                        }
+
+                        weekSelectHtml += "<option selected='selected'>" + data.table.week + "</option >";
+                        for (var i = data.table.week + 1; i < data.weeks.length; i++) {
+                            weekSelectHtml += "<option value='" + i + "'>" + i + "</option>";
+                        }
+
+                        weekSelectHtml += "</select>";
+                        document.getElementById("choose_week").innerHTML = weekSelectHtml;
+                    }
+                    else {
+                        var choices = data.choices;
+                        var selectHtml = '<select name="choose_group" id="choose_group">';
+                        for (var i = 0; i < choices.length; i++) {
+                            selectHtml += "<option value='" + choices[i].group + "'>" + choices[i].name + "</option>";
+                        }
+
+                        selectHtml += "</select>";
+                        document.getElementById("choose_group").innerHTML = selectHtml;
+                        set_week();
+                    }
+                })
+                .catch(error => console.error("Error fetching schedule:", error));
+        }
+
+        
+
+        function clearTable() {
+            // Clear table content
+                var table_ = document.getElementById(empty_table + "_table");
+                var caption = table_.querySelector("caption");
+                caption.textContent = "";
+				for(var i = 1; i<=4; i++)
+				{
+					for (var j = 1; j <= 7; j++) 
+					{
+						for (var k = 0; k <= 7; k++) 
+						{
+							var cell = document.getElementById("cell_" + empty_table + "_" + j + "_" + k);
+							cell.innerHTML = "";
+							var cell__ = document.getElementById("cell_" + i + "_" + j + "_" + k);
+							cell__.style.backgroundColor = "rgba(0, 255, 0, 0.4)";
+						}
+					}
+				}
+				for(var i = 1; i<4; i++)
+				{
+					for (var j = 1; j <= 7; j++) 
+					{
+						for (var k = 1; k <= 7; k++) 
+						{
+							var cell = document.getElementById("cell_" + i + "_" + j + "_" + k);
+							if(cell.innerHTML != "")
+							{
+								var cell1 = document.getElementById("cell_" + 1 + "_" + j + "_" + k);
+								var cell2 = document.getElementById("cell_" + 2 + "_" + j + "_" + k);
+								var cell3 = document.getElementById("cell_" + 3 + "_" + j + "_" + k);
+								var cell4 = document.getElementById("cell_" + 4 + "_" + j + "_" + k);
+								cell1.style.backgroundColor = "rgba(255, 0, 0, 0.4)";
+								cell2.style.backgroundColor = "rgba(255, 0, 0, 0.4)";
+								cell3.style.backgroundColor = "rgba(255, 0, 0, 0.4)";
+								cell4.style.backgroundColor = "rgba(255, 0, 0, 0.4)";
+							}
+							
+						}
+					}
+				}
+                
+			empty_table -= 1;
+			if(empty_table<0)
+			{
+				empty_table = 0;
+			}
+        }
+
+        function set_weeks() {
+            
+        }
+    </script>
+</head>
+<body>
+    <script>
+        function myFunction() {
+            fetch("https://webictis.sfedu.ru/schedule-api/?group=1.html")
+                .then(response => response.json())
+                .then(data => {
+
+                    var weekSelectHtml = '<select name="choose_week" id="choose_week">';
+                    for (var i = 1; i < data.table.week; i++) {
+                        weekSelectHtml += "<option value='" + i + "'>" + i + "</option>";
+                    }
+
+                    weekSelectHtml += "<option selected='selected'>" + data.table.week + "</option >";
+                    for (var i = data.table.week + 1; i < data.weeks.length; i++) {
+                        weekSelectHtml += "<option value='" + i + "'>" + i + "</option>";
+                    }
+
+                    weekSelectHtml += "</select>";
+                    document.getElementById("choose_week").innerHTML = weekSelectHtml;
+                })
+                .catch(error => console.error("Error fetching schedule:", error));
+        }
+        document.addEventListener('DOMContentLoaded', myFunction);
+    </script>
+    <h1>Сравнение расписания для поиска окон</h1>
+    <label for="query">Введите преподавателя или название группы:</label>
+    <input type="text" id="query" oninput="fetchSchedule()" />
+    <label for="choose_week">Выберите неделю:</label>
+    <select name="choose_week" id="choose_week"></select>
+    <label for="choose_group">Выберите преподавателя или группу:</label>
+    <select name="choose_group" id="choose_group"> </select>
+    <button onclick="add_schedule()">Добавить расписание</button>
+    <button onclick="clearTable()">Очистить последнюю таблицу</button>
+    <div class="table-container">
+        <table id="1_table">
+            <caption></caption>
+            <tbody>
+                <tr>
+                    <th>Пары</th>
+                    <th>1-я</th>
+                    <th>2-я</th>
+                    <th>3-я</th>
+                    <th>4-я</th>
+                    <th>5-я</th>
+                    <th>6-я</th>
+                    <th>7-я</th>
+                </tr>
+                <tr>
+                    <th>Время</th>
+                    <th>08:00-09:35</th>
+                    <th>09:50-11:25</th>
+                    <th>11:55-13:30</th>
+                    <th>13:45-15:20</th>
+                    <th>15:50-17:25</th>
+                    <th>17:40-19:15</th>
+                    <th>19:30-21:05</th>
+                </tr>
+                <tr>
+                    <td id="cell_1_1_0"></td>
+                    <td id="cell_1_1_1" class='empty-cell'></td>
+                    <td id="cell_1_1_2" class='empty-cell'></td>
+                    <td id="cell_1_1_3" class='empty-cell'></td>
+                    <td id="cell_1_1_4" class='empty-cell'></td>
+                    <td id="cell_1_1_5" class='empty-cell'></td>
+                    <td id="cell_1_1_6" class='empty-cell'></td>
+                    <td id="cell_1_1_7" class='empty-cell'></td>
+                </tr>
+                <tr>
+                    <td id="cell_1_2_0"></td>
+                    <td id="cell_1_2_1" class='empty-cell'></td>
+                    <td id="cell_1_2_2" class='empty-cell'></td>
+                    <td id="cell_1_2_3" class='empty-cell'></td>
+                    <td id="cell_1_2_4" class='empty-cell'></td>
+                    <td id="cell_1_2_5" class='empty-cell'></td>
+                    <td id="cell_1_2_6" class='empty-cell'></td>
+                    <td id="cell_1_2_7" class='empty-cell'></td>
+                </tr>
+                <tr>
+                    <td id="cell_1_3_0"></td>
+                    <td id="cell_1_3_1" class='empty-cell'></td>
+                    <td id="cell_1_3_2" class='empty-cell'></td>
+                    <td id="cell_1_3_3" class='empty-cell'></td>
+                    <td id="cell_1_3_4" class='empty-cell'></td>
+                    <td id="cell_1_3_5" class='empty-cell'></td>
+                    <td id="cell_1_3_6" class='empty-cell'></td>
+                    <td id="cell_1_3_7" class='empty-cell'></td>
+                </tr>
+                <tr>
+                    <td id="cell_1_4_0"></td>
+                    <td id="cell_1_4_1" class='empty-cell'></td>
+                    <td id="cell_1_4_2" class='empty-cell'></td>
+                    <td id="cell_1_4_3" class='empty-cell'></td>
+                    <td id="cell_1_4_4" class='empty-cell'></td>
+                    <td id="cell_1_4_5" class='empty-cell'></td>
+                    <td id="cell_1_4_6" class='empty-cell'></td>
+                    <td id="cell_1_4_7" class='empty-cell'></td>
+                </tr>
+                <tr>
+                    <td id="cell_1_5_0"></td>
+                    <td id="cell_1_5_1" class='empty-cell'></td>
+                    <td id="cell_1_5_2" class='empty-cell'></td>
+                    <td id="cell_1_5_3" class='empty-cell'></td>
+                    <td id="cell_1_5_4" class='empty-cell'></td>
+                    <td id="cell_1_5_5" class='empty-cell'></td>
+                    <td id="cell_1_5_6" class='empty-cell'></td>
+                    <td id="cell_1_5_7" class='empty-cell'></td>
+                </tr>
+                <tr>
+                    <td id="cell_1_6_0"></td>
+                    <td id="cell_1_6_1" class='empty-cell'></td>
+                    <td id="cell_1_6_2" class='empty-cell'></td>
+                    <td id="cell_1_6_3" class='empty-cell'></td>
+                    <td id="cell_1_6_4" class='empty-cell'></td>
+                    <td id="cell_1_6_5" class='empty-cell'></td>
+                    <td id="cell_1_6_6" class='empty-cell'></td>
+                    <td id="cell_1_6_7" class='empty-cell'></td>
+                </tr>
+                <tr>
+                    <td id="cell_1_7_0"></td>
+                    <td id="cell_1_7_1" class='empty-cell'></td>
+                    <td id="cell_1_7_2" class='empty-cell'></td>
+                    <td id="cell_1_7_3" class='empty-cell'></td>
+                    <td id="cell_1_7_4" class='empty-cell'></td>
+                    <td id="cell_1_7_5" class='empty-cell'></td>
+                    <td id="cell_1_7_6" class='empty-cell'></td>
+                    <td id="cell_1_7_7" class='empty-cell'></td>
+                </tr>
+            </tbody>
+        </table>
+        <table id="2_table">
+            <caption></caption>
+            <tbody>
+                <tr>
+                    <th>Пары</th>
+                    <th>1-я</th>
+                    <th>2-я</th>
+                    <th>3-я</th>
+                    <th>4-я</th>
+                    <th>5-я</th>
+                    <th>6-я</th>
+                    <th>7-я</th>
+                </tr>
+                <tr>
+                    <th>Время</th>
+                    <th>08:00-09:35</th>
+                    <th>09:50-11:25</th>
+                    <th>11:55-13:30</th>
+                    <th>13:45-15:20</th>
+                    <th>15:50-17:25</th>
+                    <th>17:40-19:15</th>
+                    <th>19:30-21:05</th>
+                </tr>
+                <tr>
+                    <td id="cell_2_1_0"></td>
+                    <td id="cell_2_1_1" class='empty-cell'></td>
+                    <td id="cell_2_1_2" class='empty-cell'></td>
+                    <td id="cell_2_1_3" class='empty-cell'></td>
+                    <td id="cell_2_1_4" class='empty-cell'></td>
+                    <td id="cell_2_1_5" class='empty-cell'></td>
+                    <td id="cell_2_1_6" class='empty-cell'></td>
+                    <td id="cell_2_1_7" class='empty-cell'></td>
+                </tr>
+                <tr>
+                    <td id="cell_2_2_0"></td>
+                    <td id="cell_2_2_1" class='empty-cell'></td>
+                    <td id="cell_2_2_2" class='empty-cell'></td>
+                    <td id="cell_2_2_3" class='empty-cell'></td>
+                    <td id="cell_2_2_4" class='empty-cell'></td>
+                    <td id="cell_2_2_5" class='empty-cell'></td>
+                    <td id="cell_2_2_6" class='empty-cell'></td>
+                    <td id="cell_2_2_7" class='empty-cell'></td>
+                </tr>
+                <tr>
+                    <td id="cell_2_3_0"></td>
+                    <td id="cell_2_3_1" class='empty-cell'></td>
+                    <td id="cell_2_3_2" class='empty-cell'></td>
+                    <td id="cell_2_3_3" class='empty-cell'></td>
+                    <td id="cell_2_3_4" class='empty-cell'></td>
+                    <td id="cell_2_3_5" class='empty-cell'></td>
+                    <td id="cell_2_3_6" class='empty-cell'></td>
+                    <td id="cell_2_3_7" class='empty-cell'></td>
+                </tr>
+                <tr>
+                    <td id="cell_2_4_0"></td>
+                    <td id="cell_2_4_1" class='empty-cell'></td>
+                    <td id="cell_2_4_2" class='empty-cell'></td>
+                    <td id="cell_2_4_3" class='empty-cell'></td>
+                    <td id="cell_2_4_4" class='empty-cell'></td>
+                    <td id="cell_2_4_5" class='empty-cell'></td>
+                    <td id="cell_2_4_6" class='empty-cell'></td>
+                    <td id="cell_2_4_7" class='empty-cell'></td>
+                </tr>
+                <tr>
+                    <td id="cell_2_5_0"></td>
+                    <td id="cell_2_5_1" class='empty-cell'></td>
+                    <td id="cell_2_5_2" class='empty-cell'></td>
+                    <td id="cell_2_5_3" class='empty-cell'></td>
+                    <td id="cell_2_5_4" class='empty-cell'></td>
+                    <td id="cell_2_5_5" class='empty-cell'></td>
+                    <td id="cell_2_5_6" class='empty-cell'></td>
+                    <td id="cell_2_5_7" class='empty-cell'></td>
+                </tr>
+                <tr>
+                    <td id="cell_2_6_0"></td>
+                    <td id="cell_2_6_1" class='empty-cell'></td>
+                    <td id="cell_2_6_2" class='empty-cell'></td>
+                    <td id="cell_2_6_3" class='empty-cell'></td>
+                    <td id="cell_2_6_4" class='empty-cell'></td>
+                    <td id="cell_2_6_5" class='empty-cell'></td>
+                    <td id="cell_2_6_6" class='empty-cell'></td>
+                    <td id="cell_2_6_7" class='empty-cell'></td>
+                </tr>
+                <tr>
+                    <td id="cell_2_7_0"></td>
+                    <td id="cell_2_7_1" class='empty-cell'></td>
+                    <td id="cell_2_7_2" class='empty-cell'></td>
+                    <td id="cell_2_7_3" class='empty-cell'></td>
+                    <td id="cell_2_7_4" class='empty-cell'></td>
+                    <td id="cell_2_7_5" class='empty-cell'></td>
+                    <td id="cell_2_7_6" class='empty-cell'></td>
+                    <td id="cell_2_7_7" class='empty-cell'></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-container">
+        <table id="3_table">
+            <caption></caption>
+            <tbody>
+                <tr>
+                    <th>Пары</th>
+                    <th>1-я</th>
+                    <th>2-я</th>
+                    <th>3-я</th>
+                    <th>4-я</th>
+                    <th>5-я</th>
+                    <th>6-я</th>
+                    <th>7-я</th>
+                </tr>
+                <tr>
+                    <th>Время</th>
+                    <th>08:00-09:35</th>
+                    <th>09:50-11:25</th>
+                    <th>11:55-13:30</th>
+                    <th>13:45-15:20</th>
+                    <th>15:50-17:25</th>
+                    <th>17:40-19:15</th>
+                    <th>19:30-21:05</th>
+                </tr>
+                <tr>
+                    <td id="cell_3_1_0"></td>
+                    <td id="cell_3_1_1" class='empty-cell'></td>
+                    <td id="cell_3_1_2" class='empty-cell'></td>
+                    <td id="cell_3_1_3" class='empty-cell'></td>
+                    <td id="cell_3_1_4" class='empty-cell'></td>
+                    <td id="cell_3_1_5" class='empty-cell'></td>
+                    <td id="cell_3_1_6" class='empty-cell'></td>
+                    <td id="cell_3_1_7" class='empty-cell'></td>
+                </tr>
+                <tr>
+                    <td id="cell_3_2_0"></td>
+                    <td id="cell_3_2_1" class='empty-cell'></td>
+                    <td id="cell_3_2_2" class='empty-cell'></td>
+                    <td id="cell_3_2_3" class='empty-cell'></td>
+                    <td id="cell_3_2_4" class='empty-cell'></td>
+                    <td id="cell_3_2_5" class='empty-cell'></td>
+                    <td id="cell_3_2_6" class='empty-cell'></td>
+                    <td id="cell_3_2_7" class='empty-cell'></td>
+                </tr>
+                <tr>
+                    <td id="cell_3_3_0"></td>
+                    <td id="cell_3_3_1" class='empty-cell'></td>
+                    <td id="cell_3_3_2" class='empty-cell'></td>
+                    <td id="cell_3_3_3" class='empty-cell'></td>
+                    <td id="cell_3_3_4" class='empty-cell'></td>
+                    <td id="cell_3_3_5" class='empty-cell'></td>
+                    <td id="cell_3_3_6" class='empty-cell'></td>
+                    <td id="cell_3_3_7" class='empty-cell'></td>
+                </tr>
+                <tr>
+                    <td id="cell_3_4_0"></td>
+                    <td id="cell_3_4_1" class='empty-cell'></td>
+                    <td id="cell_3_4_2" class='empty-cell'></td>
+                    <td id="cell_3_4_3" class='empty-cell'></td>
+                    <td id="cell_3_4_4" class='empty-cell'></td>
+                    <td id="cell_3_4_5" class='empty-cell'></td>
+                    <td id="cell_3_4_6" class='empty-cell'></td>
+                    <td id="cell_3_4_7" class='empty-cell'></td>
+                </tr>
+                <tr>
+                    <td id="cell_3_5_0"></td>
+                    <td id="cell_3_5_1" class='empty-cell'></td>
+                    <td id="cell_3_5_2" class='empty-cell'></td>
+                    <td id="cell_3_5_3" class='empty-cell'></td>
+                    <td id="cell_3_5_4" class='empty-cell'></td>
+                    <td id="cell_3_5_5" class='empty-cell'></td>
+                    <td id="cell_3_5_6" class='empty-cell'></td>
+                    <td id="cell_3_5_7" class='empty-cell'></td>
+                </tr>
+                <tr>
+                    <td id="cell_3_6_0"></td>
+                    <td id="cell_3_6_1" class='empty-cell'></td>
+                    <td id="cell_3_6_2" class='empty-cell'></td>
+                    <td id="cell_3_6_3" class='empty-cell'></td>
+                    <td id="cell_3_6_4" class='empty-cell'></td>
+                    <td id="cell_3_6_5" class='empty-cell'></td>
+                    <td id="cell_3_6_6" class='empty-cell'></td>
+                    <td id="cell_3_6_7" class='empty-cell'></td>
+                </tr>
+                <tr>
+                    <td id="cell_3_7_0"></td>
+                    <td id="cell_3_7_1" class='empty-cell'></td>
+                    <td id="cell_3_7_2" class='empty-cell'></td>
+                    <td id="cell_3_7_3" class='empty-cell'></td>
+                    <td id="cell_3_7_4" class='empty-cell'></td>
+                    <td id="cell_3_7_5" class='empty-cell'></td>
+                    <td id="cell_3_7_6" class='empty-cell'></td>
+                    <td id="cell_3_7_7" class='empty-cell'></td>
+                </tr>
+            </tbody>
+        </table>
+        <table id="4_table">
+            <caption></caption>
+            <tbody>
+                <tr>
+                    <th>Пары</th>
+                    <th>1-я</th>
+                    <th>2-я</th>
+                    <th>3-я</th>
+                    <th>4-я</th>
+                    <th>5-я</th>
+                    <th>6-я</th>
+                    <th>7-я</th>
+                </tr>
+                <tr>
+                    <th>Время</th>
+                    <th>08:00-09:35</th>
+                    <th>09:50-11:25</th>
+                    <th>11:55-13:30</th>
+                    <th>13:45-15:20</th>
+                    <th>15:50-17:25</th>
+                    <th>17:40-19:15</th>
+                    <th>19:30-21:05</th>
+                </tr>
+                <tr>
+                    <td id="cell_4_1_0"></td>
+                    <td id="cell_4_1_1" class='empty-cell'></td>
+                    <td id="cell_4_1_2" class='empty-cell'></td>
+                    <td id="cell_4_1_3" class='empty-cell'></td>
+                    <td id="cell_4_1_4" class='empty-cell'></td>
+                    <td id="cell_4_1_5" class='empty-cell'></td>
+                    <td id="cell_4_1_6" class='empty-cell'></td>
+                    <td id="cell_4_1_7" class='empty-cell'></td>
+                </tr>
+                <tr>
+                    <td id="cell_4_2_0"></td>
+                    <td id="cell_4_2_1" class='empty-cell'></td>
+                    <td id="cell_4_2_2" class='empty-cell'></td>
+                    <td id="cell_4_2_3" class='empty-cell'></td>
+                    <td id="cell_4_2_4" class='empty-cell'></td>
+                    <td id="cell_4_2_5" class='empty-cell'></td>
+                    <td id="cell_4_2_6" class='empty-cell'></td>
+                    <td id="cell_4_2_7" class='empty-cell'></td>
+                </tr>
+                <tr>
+                    <td id="cell_4_3_0"></td>
+                    <td id="cell_4_3_1" class='empty-cell'></td>
+                    <td id="cell_4_3_2" class='empty-cell'></td>
+                    <td id="cell_4_3_3" class='empty-cell'></td>
+                    <td id="cell_4_3_4" class='empty-cell'></td>
+                    <td id="cell_4_3_5" class='empty-cell'></td>
+                    <td id="cell_4_3_6" class='empty-cell'></td>
+                    <td id="cell_4_3_7" class='empty-cell'></td>
+                </tr>
+                <tr>
+                    <td id="cell_4_4_0"></td>
+                    <td id="cell_4_4_1" class='empty-cell'></td>
+                    <td id="cell_4_4_2" class='empty-cell'></td>
+                    <td id="cell_4_4_3" class='empty-cell'></td>
+                    <td id="cell_4_4_4" class='empty-cell'></td>
+                    <td id="cell_4_4_5" class='empty-cell'></td>
+                    <td id="cell_4_4_6" class='empty-cell'></td>
+                    <td id="cell_4_4_7" class='empty-cell'></td>
+                </tr>
+                <tr>
+                    <td id="cell_4_5_0"></td>
+                    <td id="cell_4_5_1" class='empty-cell'></td>
+                    <td id="cell_4_5_2" class='empty-cell'></td>
+                    <td id="cell_4_5_3" class='empty-cell'></td>
+                    <td id="cell_4_5_4" class='empty-cell'></td>
+                    <td id="cell_4_5_5" class='empty-cell'></td>
+                    <td id="cell_4_5_6" class='empty-cell'></td>
+                    <td id="cell_4_5_7" class='empty-cell'></td>
+                </tr>
+                <tr>
+                    <td id="cell_4_6_0"></td>
+                    <td id="cell_4_6_1" class='empty-cell'></td>
+                    <td id="cell_4_6_2" class='empty-cell'></td>
+                    <td id="cell_4_6_3" class='empty-cell'></td>
+                    <td id="cell_4_6_4" class='empty-cell'></td>
+                    <td id="cell_4_6_5" class='empty-cell'></td>
+                    <td id="cell_4_6_6" class='empty-cell'></td>
+                    <td id="cell_4_6_7" class='empty-cell'></td>
+                </tr>
+                <tr>
+                    <td id="cell_4_7_0"></td>
+                    <td id="cell_4_7_1" class='empty-cell'></td>
+                    <td id="cell_4_7_2" class='empty-cell'></td>
+                    <td id="cell_4_7_3" class='empty-cell'></td>
+                    <td id="cell_4_7_4" class='empty-cell'></td>
+                    <td id="cell_4_7_5" class='empty-cell'></td>
+                    <td id="cell_4_7_6" class='empty-cell'></td>
+                    <td id="cell_4_7_7" class='empty-cell'></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
